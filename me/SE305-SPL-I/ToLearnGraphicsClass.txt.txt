@@ -1,0 +1,11 @@
+1.javax.swing.JFrame
+2.javax.swing.JPanel
+3.javax.swing.Timer
+4.java.awt.Graphics
+5.java.awt.Graphics2D
+6.java.awt.event.ActionEvent
+7.java.awt.event.ActionListener
+8.java.awt.Color
+9.java.awt.Dimension
+10.java.awt.RenderingHints
+11.java.awt.geom.Ellipse2D
