@@ -1,0 +1,21 @@
+
+C:\windows\system32>D:
+
+D:\uploadedFiles\3352f940a55258864e35fbe926a01e-a8be6c6e331bc487>cd D:\uploadedFiles\22d8182b453980809327727bdfcb628-f46f2c92b4f4737\ 
+
+D:\uploadedFiles\22d8182b453980809327727bdfcb628-f46f2c92b4f4737>C:\ZamApps\ConversionTools\IZArc\izarce -e "D:\uploadedFiles\22d8182b453980809327727bdfcb628-f46f2c92b4f4737\p1bcb32tsg1ht2170ghfb1vnss2n4.rar" 
+IZArc Command Line Extraction Add-On Version 1.1 (Build: 130)
+Copyright(c) 2007 Ivan Zahariev, All Rights Reserved.
+http://www.izarc.org    contact@izarc.org
+
+
+Archive File: p1bcb32tsg1ht2170ghfb1vnss2n4.rar
+
+  extracting: sqlite-jdbc-3.16.1.jar                              OK
+  extracting: DatabaseTest.java                                   OK
+  extracting: bsse08.db                                           OK
+
+D:\uploadedFiles\22d8182b453980809327727bdfcb628-f46f2c92b4f4737>C:\ZamApps\ConversionTools\IZArc\izarcc -a "D:\uploadedFiles\22d8182b453980809327727bdfcb628-f46f2c92b4f4737\p1bcb32tsg1ht2170ghfb1vnss2n4.zip" "*.*" 
+IZArc Command Line Compression Add-On Version 1.1 (Build: 130)
+Copyright(c) 2007 Ivan Zahariev, All Rights Reserved.
+http://ww
