@@ -1,0 +1,603 @@
+package fb6;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableModel;
+
+import org.xml.sax.SAXException;
+
+public class Fb {
+	private String firstName;
+	private String surName;
+	private String mobOrEmail;
+	private String reEnteredMobOrEmail;
+	private char[] password;
+	private String day,month,year;
+	private String gender="noone";
+	private JFrame frame;
+	private JFrame frameOfAllAccounts;
+	private HashMap<String, Account> accounts =  new HashMap<>();
+	JPasswordField logInPasswordField ;
+	private JTable table;
+	private DefaultTableModel model;
+	private int serialNo=0;
+	
+	public  Fb() {
+	    makeMainFrame();
+		
+		createTable();		
+		
+		JPanel panelOfTitleBar = drawTitle();
+		
+		makeLogInPart(panelOfTitleBar);
+			
+		writeHeadingOfAccountCreationPart();
+		
+		writeSubHeadingOfAccountCreationPart();
+		
+		JPanel panelOfUserName = new JPanel(new GridLayout(1, 2));
+		panelOfUserName.add(new JLabel(""));
+		JPanel panelOfFullName = new JPanel(new GridLayout(1, 2));
+		
+		JTextField tFieldOfFirstname = makeTextFieldOfFirstName();
+		
+	    panelOfFullName.add(tFieldOfFirstname);
+	    
+		JTextField tFieldOfSurname = makeTextFieldOfSurname(panelOfUserName, panelOfFullName);
+		
+		JTextField tFieldOfMobile = makeTextFieldOfEmailOrMobile();
+
+		makeTextFieldOfRe_enteredOfEmailOrMobile();
+		
+		JPanel panelOfPassword = new JPanel();
+		panelOfPassword.setLayout(new GridLayout(1, 2));
+		panelOfPassword.add(new JLabel(""));
+		
+		makePasswordField(panelOfPassword);
+		
+		makeComboboxOfBirthday();
+		
+		makeCheckBoxOfGender();
+		
+		makeAccountCreatorButton(tFieldOfFirstname, tFieldOfSurname, tFieldOfMobile);
+		frame.setVisible(true);
+		
+	}
+
+	private void makeAccountCreatorButton(JTextField tFieldOfFirstname, JTextField tFieldOfSurname, JTextField tFieldOfMobile) {
+		JPanel panel = new JPanel(new GridLayout(1, 2));
+		panel.add(new JLabel(""));
+		JButton jbCreatAc = new JButton("Create Account");
+		jbCreatAc.setBackground(Color.green);
+		jbCreatAc.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				firstName = tFieldOfFirstname.getText();
+				surName = tFieldOfSurname.getText();
+				mobOrEmail = tFieldOfMobile.getText();
+				System.out.println();
+				JOptionPane.showMessageDialog(null, firstName+"  "+surName+"  "+mobOrEmail+" "+day+"."+month+"."+year+"  "+password.toString());
+				if(!checkPatter(firstName,surName,mobOrEmail)) ;
+				
+				else if(! mobOrEmail.equals(reEnteredMobOrEmail)) JOptionPane.showMessageDialog(null, "Email mismatch, please try again",
+						"error",JOptionPane.ERROR_MESSAGE);
+				else if(!checkEmail(mobOrEmail))JOptionPane.showMessageDialog(null, "Account already exist,"
+							+ "Enter another email","Error", JOptionPane.ERROR_MESSAGE);
+				else{
+					//password = logInPasswordField.getPassword();
+					Account account = new Account(firstName, surName, mobOrEmail,password, day+month+year, gender);
+					accounts.put(account.getMobOrEmail(), account);
+					model.addRow(new Object[]{serialNo,firstName,surName,gender,day+"-"+month+"-"+year});
+					writeInformationToXmlFile();
+					JOptionPane.showMessageDialog(null, "Account created");
+					serialNo++;
+					
+					frame.setVisible(false);
+					showAllInformation(mobOrEmail);
+				}		
+				
+			}
+
+			
+		});
+		
+		JPanel subPanel = new JPanel(new GridLayout(1, 2));
+		subPanel.add(jbCreatAc);
+		subPanel.add(new JLabel(""));
+		panel.add(subPanel);
+		
+		frame.add(panel);
+	}
+	
+	private void writeInformationToXmlFile() {
+		try {
+		
+			new WriteToXMLFile(firstName, surName, mobOrEmail, day+"-"+month+"-"+year, password);
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}													
+	
+
+	private void makeCheckBoxOfGender() {
+		JPanel panel = new JPanel(new GridLayout(1, 2));
+		panel.add(new JLabel(""));
+		
+		JPanel subPanel = new JPanel(new BorderLayout());
+		JCheckBox male = new JCheckBox("Male");
+		JCheckBox female = new JCheckBox("Female");
+		male.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				 if(male.isSelected()) {
+					 gender = "Male";
+					 if(female.isSelected()) female.setSelected(false);
+				 }
+				 else {
+					 if(! female.isSelected()) gender = null ;
+				 }
+			}
+		});
+		
+		
+		female.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				if(female.isSelected() ){ 
+					gender = "Female";
+					if(male.isSelected()) male.setSelected(false);
+					
+				}
+				
+				else {
+					if(! male.isSelected()) gender = null ;
+				}
+				
+				
+			}
+		});
+		subPanel.add(male,BorderLayout.WEST);
+		subPanel.add(female,BorderLayout.CENTER);
+		panel.add(subPanel);
+		frame.add(panel);
+	}
+
+	private void makeComboboxOfBirthday() {
+		JPanel panelOfBirthDay = new JPanel(new GridLayout(1, 2));
+		panelOfBirthDay.add(new JLabel(""));
+		
+		//JPanel birthDate = new JPanel(new GridLayout(1, 2));
+		//birthDate.add(new JLabel(""));
+		
+		JComboBox<?>dayList;
+		
+		String []days = new String[32];
+		days[0]="Day";
+		for(int i=1;i<32;i++){
+			days[i]=String.valueOf(i);
+		}
+		
+		dayList = new JComboBox<String>(days);
+		dayList.setSelectedIndex(0);
+		dayList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				day = (String) dayList.getSelectedItem();
+			}
+		});
+		JPanel subPanelOfBirthday = new JPanel(new GridLayout(2, 2));
+		JLabel textLabel = new JLabel("Birthday");
+		subPanelOfBirthday.add(textLabel);
+		subPanelOfBirthday.add(new JLabel(""));
+		
+		JPanel datePanel = new JPanel(new GridLayout(1, 3));
+		datePanel.add(dayList);
+		
+		
+		JComboBox<?>monthList;
+		String[] months = new String[13];
+		months[0] = "Month";
+		for(int i=1;i<13;i++){
+			months[i] = String.valueOf(i);
+		}
+		
+		monthList = new JComboBox< String >(months);
+		monthList.setSelectedIndex(0);
+		monthList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				month = (String) monthList.getSelectedItem();
+				
+			}
+		});
+		datePanel.add(monthList);
+		
+		JComboBox<?>yearList;
+		
+		String[] years = new String[201];
+		
+		years[0] = "Year" ;
+		for(int i=1880;i<2020;i++){
+			years[i-1879] = String.valueOf(i);
+		}
+		yearList = new JComboBox<String>(years);
+		yearList.setSelectedIndex(0);
+		
+		yearList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				year = (String) yearList.getSelectedItem();
+				
+			}
+		});
+		
+		datePanel.add(yearList); 
+		subPanelOfBirthday.add(datePanel);
+		
+		JLabel notificationLabel = new JLabel("why I need to provide my \n date of birth");
+		subPanelOfBirthday.add(notificationLabel);
+		
+		panelOfBirthDay.add(subPanelOfBirthday);
+		frame.add(panelOfBirthDay);
+	}
+
+	private void makePasswordField(JPanel panelOfPassword) {
+		JPasswordField passwordField = new JPasswordField("Password",10);
+		passwordField.setToolTipText("Password");
+		passwordField.setEchoChar('*');
+		passwordField.addFocusListener(new FocusListener() {
+			public void focusLost(FocusEvent e) {
+				password = passwordField.getPassword();
+				passwordField.setText(new String(password));
+			}
+			
+			public void focusGained(FocusEvent e) {
+				password = passwordField.getPassword();
+				if(Arrays.equals(password, new char[]{'P','a','s','s','w','o','r','d'}))
+					passwordField.setText(null);
+			}
+		});
+		panelOfPassword.add(passwordField);
+		
+		frame.add(panelOfPassword);
+	}
+
+	private void makeTextFieldOfRe_enteredOfEmailOrMobile() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout(1, 2));
+		panel.add(new JLabel(""));
+		
+		JTextField reEnter = new JTextField("Re-enter mobile number or email address",40);
+		reEnter.addFocusListener(new FocusListener() {
+			
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+				reEnteredMobOrEmail = reEnter.getText();
+				reEnter.setText(reEnteredMobOrEmail);
+			}
+			
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+				reEnteredMobOrEmail = reEnter.getText();
+				if(reEnteredMobOrEmail.equals("Re-enter mobile number or email address")) reEnter.setText(null);
+			}
+		});
+		
+		panel.add(reEnter);
+		
+		frame.add(panel);
+	}
+
+	private JTextField makeTextFieldOfEmailOrMobile() {
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout(1, 2));
+		panel.add(new JLabel(""));
+		
+		JTextField tFieldOfMobile = new JTextField("Mobile number or email address",40);
+		tFieldOfMobile.setToolTipText("What is your name");
+		tFieldOfMobile.addFocusListener(new FocusListener() {
+			
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+				mobOrEmail = tFieldOfMobile.getText();
+				tFieldOfMobile.setText(mobOrEmail);
+			}
+			
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+				mobOrEmail = tFieldOfMobile.getText();
+				if(mobOrEmail.equals("Mobile number or email address")) tFieldOfMobile.setText(null);
+			}
+		});
+		panel.add(tFieldOfMobile);
+		
+		frame.add(panel);
+		return tFieldOfMobile;
+	}
+
+	private JTextField makeTextFieldOfSurname(JPanel panelOfUserName, JPanel panelOfFullName) {
+		JTextField tFieldOfSurname = new JTextField("Surname",30);
+		tFieldOfSurname.addFocusListener(new FocusListener() {
+			public void focusLost(FocusEvent e) {
+				// TODO Auto-generated method stub
+				surName = tFieldOfSurname.getText();
+				tFieldOfSurname.setText(surName);
+			}
+			
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+				surName = tFieldOfSurname.getText();
+				if(surName.equals("Surname")) tFieldOfSurname.setText(null);
+			}
+		});
+		
+		panelOfFullName.add(tFieldOfSurname);
+		
+		panelOfUserName.add(panelOfFullName);
+		frame.add(panelOfUserName);
+		return tFieldOfSurname;
+	}
+
+	private JTextField makeTextFieldOfFirstName() {
+		JTextField tFieldOfFirstname = new JTextField("First name",30);
+		
+		tFieldOfFirstname.addFocusListener(new FocusListener() {
+			public void focusLost(FocusEvent e) {
+				 
+				 firstName = tFieldOfFirstname.getText();
+				 tFieldOfFirstname.setText(firstName);
+			} 
+			
+			public void focusGained(FocusEvent e) {
+				firstName = tFieldOfFirstname.getText();
+				if(firstName.equals("First name")) tFieldOfFirstname.setText(null);
+			}	
+		
+		});
+		return tFieldOfFirstname;
+	}
+
+	private void writeSubHeadingOfAccountCreationPart() {
+		JPanel panel = new JPanel(new GridLayout(1, 2));
+		panel.add(new JLabel(""));
+		JLabel label= new JLabel("It's free and always will be ");
+		label.setFont(new Font("sherif",Font.PLAIN,20));
+		panel.add(label);
+		frame.add(panel);
+	}
+
+	private void writeHeadingOfAccountCreationPart() {
+		JPanel jpHeading = new JPanel(new GridLayout(1, 2));
+		jpHeading.add(new JLabel(""));
+		JLabel jlHeading= new JLabel("Creat a new account");
+		jlHeading.setFont(new Font("sherif",Font.PLAIN,40));
+		jpHeading.add(jlHeading);
+		frame.add(jpHeading);
+	}
+
+	private void makeLogInPart(JPanel panelOfTitleBar) {
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.BLUE);
+		panel.setLayout(new GridLayout(3, 3));
+		
+		JLabel jlEmail = new JLabel("Email or Phone",SwingConstants.LEFT);
+		jlEmail.setFont(new Font( "sherif",Font.PLAIN,15));
+			
+		JLabel jlPassword = new JLabel("Password",SwingConstants.LEFT);
+		jlPassword.setFont(new Font("sherif", Font.PLAIN, 15));
+		
+		JTextField tfEmail = new JTextField();
+		
+		
+		logInPasswordField=new JPasswordField();
+		logInPasswordField.setEchoChar('*');
+		//tfEmail.setBounds(300, 20, 150, 15);
+		JButton jbLongIn = new JButton("Log in");
+	
+		jbLongIn.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				if(!checkEmail(tfEmail.getText())) JOptionPane.showMessageDialog(null, "Account doesn't exist","Error",JOptionPane.ERROR_MESSAGE);
+				else if(!checkPassword(logInPasswordField.getPassword(),tfEmail.getText()))
+						JOptionPane.showMessageDialog(null,"Wrong Password","Error",JOptionPane.ERROR_MESSAGE);
+				else{
+					JOptionPane.showMessageDialog(null, "log in successful");
+				}
+			}
+		});
+		
+		JLabel jlForgetText = new JLabel("Forgotten account",SwingConstants.LEFT);
+		jlForgetText.setFont(new Font("sherif", Font.PLAIN, 15));
+		
+		panel.add(jlEmail);
+		panel.add(jlPassword);
+		panel.add(new JLabel(""));
+		panel.add(tfEmail);
+		panel.add(logInPasswordField);
+		panel.add(jbLongIn);
+		panel.add(new JLabel(""));
+		panel.add(jlForgetText);
+		panel.add(new JLabel(""));
+		
+		panelOfTitleBar.add(panel);
+	}
+
+	private JPanel drawTitle() {
+		JPanel panelOfTitleBar = new JPanel();
+		panelOfTitleBar.setLayout(new GridLayout(1,2));
+		panelOfTitleBar.setBackground(Color.BLUE);
+		JLabel lbTile= new JLabel("    facebook", SwingConstants.LEFT);
+	    lbTile.setFont(new Font("sherif", Font.BOLD, 40));
+	    lbTile.setForeground(Color.WHITE);
+		panelOfTitleBar.add(lbTile);
+		frame.add(panelOfTitleBar);
+		return panelOfTitleBar;
+	}
+
+	private void createTable() {
+		model = new DefaultTableModel();                                                                                                                                                                                                                                                                                                                                                                                                                             
+		table = new JTable(model);
+		model.addColumn("Serial Id");
+		model.addColumn("First Name");
+		model.addColumn("Surname");
+		model.addColumn("Gender");
+		model.addColumn("Birthday");
+	}
+
+	private void makeMainFrame() {
+		frame = new JFrame();
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		frame.setLayout(new GridLayout(10, 1));
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	private static boolean checkPatter(String firstName, String surName, String mobOrEmail) {
+		boolean returnValue=true;
+		String regExOfName = "[a-zA-Z]{1,}";
+		Pattern pRegExOfName = Pattern.compile(regExOfName);
+		Matcher mRegExOfName = pRegExOfName.matcher(firstName);
+		if(!mRegExOfName.matches()) {
+			JOptionPane.showMessageDialog(null,"Invalid Type in firstName");
+			returnValue = false;
+			
+		}
+
+		Matcher mRegExOfSurName = pRegExOfName.matcher(surName);
+		if(!mRegExOfSurName.matches()){
+			JOptionPane.showMessageDialog(null,"Invalid Type in surName");
+			returnValue = false;
+		}
+		
+		String regExOfMobOrEmail = "01[5-9]{1}[0-9]{8}|[/S]{1,}@[/S]{1,}";
+		Pattern pRegExOfMobOrEmail = Pattern.compile(regExOfMobOrEmail);
+		Matcher mRegExOfMobOrEmail = pRegExOfMobOrEmail.matcher(mobOrEmail);
+		if(!mRegExOfMobOrEmail.matches()){
+			JOptionPane.showMessageDialog(null,"Invalid Type in Moble or Email");
+			returnValue = false;
+		}
+		
+		return returnValue;
+	}	
+	
+	private boolean checkEmail(String mobOrEmail1) {
+		for(String email:accounts.keySet()){
+			System.out.println(email);
+			System.out.println("mobOrEmail:"+ accounts.get(email).getMobOrEmail());
+			System.out.println(accounts.get(email).getPassword());
+
+			if(mobOrEmail1.equals(email))return false;
+		}
+		return true;
+	}
+	
+	private boolean checkPassword(char[] logInPasswd, String email) {
+		if(Arrays.equals(logInPasswd, accounts.get(email).getPassword())) return true;
+		else return false;
+	}
+	
+	
+	private void showTable(){
+		JFrame frame = new JFrame("Facebook Account Table");
+		frame.setLayout(new BorderLayout());
+		frame.add(new JScrollPane(table), BorderLayout.PAGE_START);
+		JPanel panel= new JPanel();
+		JButton jbutton = new JButton("OK");
+		jbutton.setSize(50, 50);
+		jbutton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				frame.setVisible(false);
+				frameOfAllAccounts.setVisible(true);
+			}
+		});
+		
+		panel.add(jbutton);
+		frame.add(panel,BorderLayout.CENTER);
+		
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
+		frame.setVisible(true);
+	}
+
+	
+	private void showAllInformation(String mobOrEmail2) {
+		frameOfAllAccounts = new JFrame();
+		frameOfAllAccounts.setLayout(new GridLayout(10,1));
+		frameOfAllAccounts.setSize(1370, 738);
+		
+		JLabel name1 = new JLabel("FirstName:"+ accounts.get(mobOrEmail2).getFirstName());
+		name1.setFont(new Font("sherif", Font.BOLD, 30));
+		frameOfAllAccounts.add(name1);
+		
+		JLabel surname1 = new JLabel("Surname:"+accounts.get(mobOrEmail2).getSurName());
+		surname1.setFont(new Font("sherif", Font.BOLD, 30));
+		frameOfAllAccounts.add(surname1);
+		
+		JLabel mobileNo = new JLabel();
+		if(mobOrEmail.startsWith("01")) mobileNo.setText("Mobile:"+ accounts.get(mobOrEmail2).getMobOrEmail());
+		else mobileNo.setText("Email:"+ accounts.get(mobOrEmail2).getMobOrEmail());
+		mobileNo.setFont(new Font("sherif", Font.BOLD, 30));
+		frameOfAllAccounts.add(mobileNo);
+		
+		JLabel birthday = new JLabel("Birthday:"+this.day+"-"+this.month+"-"+this.year);
+		birthday.setFont(new Font("sherif", Font.BOLD, 30));
+		frameOfAllAccounts.add(birthday);
+		
+		JLabel gender1 = new JLabel("Gender:"+accounts.get(mobOrEmail2).getGender());
+		gender1.setFont(new Font("sherif", Font.BOLD, 30));
+		frameOfAllAccounts.add(gender1);
+		
+		JPanel pnel = new JPanel(new GridLayout(1, 4));
+		pnel.add(new JLabel(""));
+		JButton jbton = new JButton("Show All Accounts");
+		jbton.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				frameOfAllAccounts.setVisible(false);
+				showTable();
+			}
+		});
+		
+		pnel.add(jbton);
+		
+		JButton jbton1 = new JButton("Create new account");
+		jbton1.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent event) {
+				frameOfAllAccounts.setVisible(false);
+				frame.setVisible(true);
+				
+			}
+		});
+		
+		pnel.add(jbton1);
+		
+		pnel.add(new JLabel(""));
+		
+		frameOfAllAccounts.add(pnel);
+		frameOfAllAccounts.setVisible(true);
+		
+	}
+	
+}
