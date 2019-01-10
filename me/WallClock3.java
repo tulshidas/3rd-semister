@@ -174,6 +174,7 @@ public class WallClock3 extends JPanel implements ActionListener{
 			hour=0;
 		}
 		 repaint();
+		//here is a  commit for me
 		
 	}
 	
