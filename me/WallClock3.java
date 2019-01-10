@@ -134,7 +134,7 @@ public class WallClock3 extends JPanel implements ActionListener{
 		g2d.drawLine(rootX, rootY,peakOfMinuteSticX.get(minute).intValue(), peakOfMinuteSticY.get(minute).intValue());
 		g2d.drawLine(rootX, rootY,peakOfHourSticX.get(hour).intValue(), peakOfHourSticY.get(hour).intValue());
 
-		
+		//I have added a comment here
 	}
 /*
 	private void drawTimingLine(Graphics2D g2d) {
